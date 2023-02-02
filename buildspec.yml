@@ -1,0 +1,16 @@
+version: 0.2
+
+env:
+  variables:
+    GO111MODULE: on
+
+phases:
+  install:
+    commands:
+      - go mod download
+  build:
+    commands:
+      - go build -o myapp main.go
+  post_build:
+    commands:
+      - echo Build completed on `date`
