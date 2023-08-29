@@ -1,0 +1,17 @@
+# Sample Appspec file for CodeDeploy
+version: 0.0
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: "<TASK_DEF_ARN>"
+        LoadBalancerInfo:
+          ContainerName: "your-container-name"
+          ContainerPort: 5000
+        # Optional properties
+        PlatformVersion: "LATEST"
+        NetworkConfiguration:
+          AwsvpcConfiguration:
+            Subnets: ["subnet-name-1", "subnet-name-2"]
+            SecurityGroups: ["security-group"]
+            AssignPublicIp: "ENABLED"
