@@ -1,0 +1,38 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Installing dependencies..."
+      - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+      - sudo apt update
+      - sudo apt install make
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <ECR_REPO_URL> 
+  pre_build:
+    commands:
+     - echo "Docker login"
+#      - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASS
+      - echo "Pre-build dependencies"
+      - make configure-system
+      - make node-only
+      - yarn install
+      - yarn run test:coverage
+  build:
+    commands:
+      - echo "Build started on `date`"
+      - npm install -g env-cmd
+      - yarn run build
+      - echo "Building docker image"
+      # - docker build --build-arg REACT_APP_BASE_URL=$REACT_APP_BASE_URL --build-arg REACT_APP_MAPS_API=$REACT_APP_MAPS_API --build-arg REACT_APP_GOOGLE_ANALYTICS=$REACT_APP_GOOGLE_ANALYTICS -t <YOUR_REPO_NAME> .
+      - docker build <YOUR_REPO_NAME> .
+      - docker tag <IMAGE_NAME>:latest <ECR_REPO_URL> 
+
+  post_build:
+    commands:
+      - echo "Build completed on `date`"
+      - echo "Pushing image to ECR"
+      - docker push <ECR_REPO_URL>
+      - printf '[{"name":"<YOUR-CONTAINER-NAME>","imageUri":"%s"}]' <ECR_CONTANER_REPO_URL> > imagedefinitions.json
+
+artifacts:
+    files: imagedefinitions.json
